@@ -7,6 +7,7 @@ const APPID = "31cb786592c8155a2880da1b5c0a0e61";
 function App() {
   const [weatherData, setWeatherData] = useState([]);
   const [coord, setCoord] = useState({});
+  const [firstTime, setFirstTime] = useState(true);
 
   const coords = [
     { lat: -34.603722, lon: -58.381592 },
@@ -21,10 +22,6 @@ function App() {
       .then((response) => {
         const apiResponse = response.data;
         setWeatherData(apiResponse);
-        console.log(apiResponse);
-        console.log(
-          `Current temperature in ${apiResponse.location.name} is ${apiResponse.current.temperature}℃`
-        );
       })
       .catch((error) => {
         console.log(error);
@@ -32,7 +29,11 @@ function App() {
   };
 
   useEffect(() => {
-    let index = 0;
+    axiosFetch({ lat: -34.603722, lon: -58.381592 });
+    let index;
+    if (firstTime) index = 1;
+    else index = 0;
+    setFirstTime(false);
     const interval = setInterval(() => {
       setCoord(coords[index]);
       index++;
@@ -44,6 +45,7 @@ function App() {
   useEffect(() => {
     axiosFetch(coord);
   }, [coord]);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -53,7 +55,9 @@ function App() {
           alt="logo"
         />
         <p>
-          {`Current temperature in ${weatherData?.location?.name} is ${weatherData?.current?.temperature}℃`}
+          {weatherData.location
+            ? `Current temperature in ${weatherData?.location?.name} is ${weatherData?.current?.temperature}℃`
+            : null}
         </p>
         <a
           className="App-link"
