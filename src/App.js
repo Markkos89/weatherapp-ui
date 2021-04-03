@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import axiosClient from "./api";
 import "./App.css";
 import useInterval from "./hooks/useInterval";
+import countries from "i18n-iso-countries";
 
-const APPID = "31cb786592c8155a2880da1b5c0a0e61";
+// const APPID = "31cb786592c8155a2880da1b5c0a0e61";
 
 function App() {
   const [weatherData, setWeatherData] = useState([]);
-  const [coord, setCoord] = useState({});
   const [index, setIndex] = useState(0);
 
   const coords = [
@@ -20,10 +20,10 @@ function App() {
   const axiosFetch = async (coord) => {
     try {
       const response = await axiosClient.get(
-        `current?access_key=${APPID}&query=${coord.lat},${coord.lon}`
+        `current-weather/${coord.lat}/${coord.lon}`
       );
-      const apiResponse = response.data;
-      setWeatherData(apiResponse);
+      console.log(response.data);
+      setWeatherData(response.data);
     } catch (error) {
       console.error(`Falló axiosFetch`, error);
     }
@@ -45,28 +45,93 @@ function App() {
     else setIndex(() => 0);
   }, 2000);
 
+  const kelvinToFarenheit = (k) => {
+    return (k - 273.15).toFixed(2);
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img
-          src={weatherData.current?.weather_icons[0]}
-          className="App-logo"
-          alt="logo"
-        />
-        <p>
-          {weatherData.location
-            ? `Current temperature in ${weatherData?.location?.name} is ${weatherData?.current?.temperature}℃`
-            : null}
-        </p>
-        <a
-          className="App-link"
-          href="https://www.marcosiglesias.com.ar"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Made by Marcos Iglesias
-        </a>
+      <header className="d-flex justify-content-center align-items-center">
+        <h2>React Weather App</h2>
       </header>
+      <div className="container">
+        {/* <div className="mt-3 d-flex flex-column justify-content-center align-items-center">
+          <div className="col-auto">
+            <label for="location-name" className="col-form-label">
+              Enter Location :
+            </label>
+          </div>
+          <div className="col-auto">
+            <input
+              type="text"
+              id="location-name"
+              className="form-control"
+              onChange={inputHandler}
+              value={getState}
+            />
+          </div>
+          <button className="btn btn-primary mt-2" onClick={submitHandler}>
+            Search
+          </button>
+        </div> */}
+
+        <div className="card mt-3 mx-auto" style={{ width: "60vw" }}>
+          {Object.keys(weatherData).length !== 0 ? (
+            <div className="card-body text-center">
+              <img
+                src={`http://openweathermap.org/img/w/${weatherData?.weather[0]?.icon}.png`}
+                alt="weather status icon"
+                className="weather-icon"
+              />
+
+              <p className="h2">
+                {kelvinToFarenheit(weatherData?.main?.temp)}&deg; C
+              </p>
+
+              <p className="h5">
+                <i className="fas fa-map-marker-alt"></i>{" "}
+                <strong>
+                  {weatherData.name}, {weatherData.sys.country}.
+                </strong>
+              </p>
+
+              <div className="row mt-4">
+                <div className="col-md-6">
+                  <p>
+                    <strong>Min:</strong>{" "}
+                    {kelvinToFarenheit(weatherData?.main?.temp_min)}&deg; C
+                  </p>
+                  <p>
+                    <strong>Max:</strong>{" "}
+                    {kelvinToFarenheit(weatherData?.main?.temp_max)}&deg; C
+                  </p>
+                </div>
+                <div className="col-md-6">
+                  <p>
+                    <strong>
+                      {" "}
+                      {countries.getName(weatherData?.sys?.country, "en", {
+                        select: "official",
+                      })}
+                    </strong>
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <h1>Loading</h1>
+          )}
+        </div>
+      </div>
+      <footer className="footer">
+        <code>
+          Created by{" "}
+          <a href="https://www.marcosiglesias.com.ar" target="none">
+            Marcos Iglesias
+          </a>{" "}
+          using React and Node.js
+        </code>
+      </footer>
     </div>
   );
 }
